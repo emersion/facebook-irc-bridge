@@ -54,7 +54,6 @@ login({
 	})
 
 	client.on('message', (nick, to, text, msg) => {
-		console.log(nick, to, text, msg)
 		console.log('irc:', nick, text)
 		api.sendMessage(formatMessage(nick, text), config.facebook.thread)
 	})
