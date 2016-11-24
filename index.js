@@ -29,7 +29,7 @@ login({
 
 	console.log('Connected to Facebook')
 
-	api.setOptions({ selfListen: true })
+	//api.setOptions({ selfListen: true })
 
 	api.getThreadInfo(config.facebook.thread, (err, info) => {
 		if (err) return console.error(err)
