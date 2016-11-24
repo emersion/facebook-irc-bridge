@@ -1,4 +1,4 @@
-const login = require('facebook-chat-api');
+const login = require('facebook-chat-api')
 const irc = require('irc')
 const config = require('./config')
 
@@ -19,6 +19,8 @@ client.on('motd', (motd) => console.log(motd))
 
 client.on('error', (err) => console.error(err))
 
+let facebookUsers = {}
+
 login({
 	email: config.facebook.email,
 	password: config.facebook.password
@@ -29,7 +31,6 @@ login({
 
 	api.setOptions({ selfListen: true })
 
-	let facebookUsers = {}
 	api.getThreadInfo(config.facebook.thread, (err, info) => {
 		if (err) return console.error(err)
 
@@ -43,22 +44,60 @@ login({
 	})
 
 	api.listen((err, event) => {
-		if (event.type != 'message') return console.log('Unhandled event:', event.type)
 		if (event.threadID != config.facebook.thread) return console.log('Message in another thread:', event.threadID)
 
-		let sender = event.senderID
-		if (facebookUsers[sender]) sender = facebookUsers[sender].name
-
-		console.log('facebook:', sender, event.body)
-		client.say(config.irc.channel, formatMessage(sender, event.body))
+		switch (event.type) {
+		case 'message':
+			console.log('facebook:', event)
+			client.say(config.irc.channel, formatMessage(event))
+			break
+		default:
+			console.log('Unhandled event:', event.type)
+		}
 	})
 
 	client.on('message', (nick, to, text, msg) => {
 		console.log('irc:', nick, text)
-		api.sendMessage(formatMessage(nick, text), config.facebook.thread)
+		api.sendMessage(nick+': '+text, config.facebook.thread)
 	})
 })
 
-function formatMessage(sender, text) {
-	return sender + ': ' + text
+function formatUser(id) {
+	if (facebookUsers[id]) {
+		return facebookUsers[id].name
+	}
+	return id
+}
+
+function formatMessage(msg) {
+	let output = formatUser(msg.senderID) + ': '
+
+	if (msg.body) {
+		output += msg.body
+	}
+
+	if (msg.attachments) {
+		output += msg.attachments.map(formatAttachment).join('\n')
+	}
+
+	return output
+}
+
+function formatAttachment(att) {
+	switch (att.type) {
+	case 'sticker':
+		return 'Sticker: '+att.caption
+	case 'file':
+		return 'File: '+att.url
+	case 'photo':
+		return 'Photo: '+(att.url || att.previewUrl)
+	case 'animated_image':
+		return 'GIF: '+att.url
+	case 'share':
+		return 'Share: '+att.url
+	case 'video':
+		return 'Video: '+att.url
+	default:
+		return 'Unsupported attachment: '+att.type
+	}
 }
