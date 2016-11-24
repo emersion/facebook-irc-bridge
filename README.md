@@ -10,14 +10,14 @@ Create `config.json`:
 	"facebook": {
 		"email": "root@nsa.gov",
 		"password": "iLoveSnowden",
-		"thread": "142232853343969",
+		"thread": "142232853343969"
 	},
 	"irc": {
 		"hostname": "irc.dille.cc",
 		"port": 6697,
 		"secure": true,
 		"nick": "sava",
-		"channel": "#cc",
+		"channel": "#cc"
 	}
 }
 ```
